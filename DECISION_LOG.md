@@ -16,3 +16,8 @@ Added a basic email model structure for llm
 Also a prompts file for the agents. Starting with get_email_prompt which will generate a mail to people who are overdue.
 
 email_agent so it can make follow up mails.
+
+Creating escalation agent and then removing the need of using utils.. When a seperatable structure like this is followed, the app becomes easy to edit and modular and get more customization.
+
+Created proper llm service for it's guide
+Trying llama3.3 first

@@ -19,11 +19,13 @@ Rules:
 - Mention payment clearly
 - Avoid hallucinations
 
-Return ONLY valid JSON:
+Return ONLY raw JSON:
 {{
     "subject": "...",
     "body": "...",
     "tone": "{stage}",
     "stage": "{stage}"
 }}
+Do NOT wrap output in markdown.
+Do NOT explain anything.
 """
