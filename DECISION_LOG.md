@@ -15,3 +15,4 @@ Replacing gemini api key with open weight llama through Nvidia
 Added a basic email model structure for llm
 Also a prompts file for the agents. Starting with get_email_prompt which will generate a mail to people who are overdue.
 
+email_agent so it can make follow up mails.
