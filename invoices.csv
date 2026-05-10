@@ -1,14 +1,13 @@
 invoice_no,client_name,amount,due_date,contact_email,follow_up_count,payment_link
-INV-2026-001,Rajesh Kapoor,45000,2026-05-02,rajesh.kapoor@gmail.com,1,https://pay.company.com/INV-2026-001
-INV-2026-002,Priya Sharma,78000,2026-04-28,priya.sharma@gmail.com,2,https://pay.company.com/INV-2026-002
-INV-2026-003,Amit Verma,120000,2026-04-20,amit.verma@gmail.com,3,https://pay.company.com/INV-2026-003
-INV-2026-004,Suresh Nair,22000,2026-04-10,suresh.nair@gmail.com,4,https://pay.company.com/INV-2026-004
-INV-2026-005,Neha Joshi,65000,2026-03-15,neha.joshi@gmail.com,5,https://pay.company.com/INV-2026-005
-INV-2026-006,Vikram Desai,99000,2026-05-06,vikram.desai@gmail.com,1,https://pay.company.com/INV-2026-006
-INV-2026-007,Ananya Mehta,30500,2026-04-30,ananya.mehta@gmail.com,2,https://pay.company.com/INV-2026-007
-INV-2026-008,Karan Patel,18000,2026-05-09,karan@gmail.com,0,https://pay.company.com/INV-2026-008
-INV-2026-009,Ritu Malhotra,55000,2026-04-15,ritu@gmail.com,3,https://pay.company.com/INV-2026-009
-INV-2026-010,TechNova Pvt Ltd,250000,2026-03-28,finance@technova.com,4,https://pay.company.com/INV-2026-010
-INV-2026-011,BluePeak Solutions,73000,2026-05-07,accounts@bluepeak.com,1,https://pay.company.com/INV-2026-011
-INV-2026-012,Sanjay Kulkarni,41000,2026-04-22,sanjay@gmail.com,2,https://pay.company.com/INV-2026-012
-
+INV-2026-001,Rajesh Kapoor,45000,02-05-2026,shardulmd@gmail.com,1,https://pay.company.com/INV-2026-001
+INV-2026-002,Priya Sharma,78000,28-04-2026,shardulmd2@gmail.com,2,https://pay.company.com/INV-2026-002
+INV-2026-003,Amit Verma,120000,20-04-2026,shardulmd@gmail.com,3,https://pay.company.com/INV-2026-003
+INV-2026-004,Suresh Nair,22000,10-04-2026,shardulmd2@gmail.com,4,https://pay.company.com/INV-2026-004
+INV-2026-005,Neha Joshi,65000,15-03-2026,shardulmd@gmail.com,5,https://pay.company.com/INV-2026-005
+INV-2026-006,Vikram Desai,99000,06-05-2026,shardulmd2@gmail.com,1,https://pay.company.com/INV-2026-006
+INV-2026-007,Ananya Mehta,30500,30-04-2026,shardulmd@gmail.com,2,https://pay.company.com/INV-2026-007
+INV-2026-008,Karan Patel,18000,09-05-2026,shardulmd2@gmail.com,0,https://pay.company.com/INV-2026-008
+INV-2026-009,Ritu Malhotra,55000,15-04-2026,shardulmd@gmail.com,3,https://pay.company.com/INV-2026-009
+INV-2026-010,TechNova Pvt Ltd,250000,28-03-2026,shardulmd2@gmail.com,4,https://pay.company.com/INV-2026-010
+INV-2026-011,BluePeak Solutions,73000,07-05-2026,shardulmd@gmail.com,1,https://pay.company.com/INV-2026-011
+INV-2026-012,Sanjay Kulkarni,41000,22-04-2026,shardulmd2@gmail.com,2,https://pay.company.com/INV-2026-012

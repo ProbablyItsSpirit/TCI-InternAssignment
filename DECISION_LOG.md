@@ -5,4 +5,8 @@ For AI I am going to use Gemini 1.5 either Locally/or with API.
 And for simple UI streamlit ofc.
 
 I'll work on mock data first. 
+Generated Mock data like this: 
 
+| invoice_no | client_name | amount | due_date | contact_email | follow_up_count | payment_link |
+|---|---|---|---|---|---|---|
+| INV-2026-001 | Some Name | AMT | DD-MM-YYYY | xyz@example.com | 1 | https://paymentlink.com/INV-2026-001 |
