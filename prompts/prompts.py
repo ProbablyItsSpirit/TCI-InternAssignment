@@ -41,6 +41,7 @@ STRICT RULES:
 - Do NOT repeat information unnecessarily
 
 - Mention invoice number naturally
+- Subject lines must escalate in urgency based on the stage (Eg: "Payment Reminder" for Stage 1, "Urgent: Payment Overdue" for Stage 4)
 - Keep the whole email under 200 words
 - Add a professional greeting and closing
 - Personalize the message
@@ -50,7 +51,6 @@ STRICT RULES:
 - Never use placeholders like [Your Name].
 - Always sign off as:
 - Finance Collections Team
-
 RETURN FORMAT:
 {{
     "subject": "...",

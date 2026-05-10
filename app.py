@@ -63,6 +63,11 @@ if st.button("Run Follow-Up Agent"):
                 f"{row['client_name']} • {row['invoice_no']} • {row['stage']}"
             ):
 
+                st.warning("Payment Pending")
+
+                if row["stage"] == "Stage 4":
+                    st.error("Final Reminder Before Escalation")
+
                 st.markdown("### Subject")
                 st.markdown(email["subject"])
 

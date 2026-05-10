@@ -46,7 +46,6 @@ But this still requires a little prompt update for it's tone. And it kinda sound
 #### Test - 2
 
 Changed the mail generation tone successfully
-But it also generated a mail with placeholder. 
 Newly Generated mail:
 
 ---
@@ -67,5 +66,9 @@ Days Overdue: 12
 Due Date: 28-04-2026
 
 ---
+But it also generated a mail with placeholder. 
+AI hallucinating(sometimes) fixed and removed the place holder problem
 
-AI hallucin
+
+### Phase 2
+Adding SQLite logging so I can save timestamps and send status and audit trails
