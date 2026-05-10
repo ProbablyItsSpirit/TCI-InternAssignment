@@ -25,12 +25,36 @@ df = pd.read_csv("invoices.csv")
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 
 df["stage"] = df["days_overdue"].apply(determine_stage)
+# Sidebar Filters
+
+st.sidebar.header("Filters")
+
+selected_stage = st.sidebar.selectbox(
+    "Filter by Stage",
+    ["All"] + list(df["stage"].unique())
+)
+
+min_overdue = st.sidebar.slider(
+    "Minimum Overdue Days",
+    0,
+    int(df["days_overdue"].max()),
+    0
+)
+
+filtered_df = df.copy()
+
+if selected_stage != "All":
+    filtered_df = filtered_df[filtered_df["stage"] == selected_stage]
+
+filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
+
+
 
 # Dashboard
 
 st.subheader("Invoice Dashboard")
 
-st.dataframe(df)
+st.dataframe(filtered_df, use_container_width=True)
 
 # Metrics
 
