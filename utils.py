@@ -1,7 +1,7 @@
 from datetime import datetime
 
 def calculate_days_overdue(due_date):
-    due = datetime.strptime(due_date, "%Y-%m-%d")
+    due = datetime.strptime(due_date, "%d-%m-%Y")
     today = datetime.today()
     return (today - due).days
 

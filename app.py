@@ -13,3 +13,13 @@ df["stage"] = df["days_overdue"].apply(determine_stage)
 
 st.subheader("Invoice Dashboard")
 st.dataframe(df)
+
+total = len(df)
+escalated = len(df[df["stage"] == "Escalation"])
+pending = len(df[df["days_overdue"] > 0])
+
+col1, col2, col3 = st.columns(3)
+
+col1.metric("Total Invoices", total)
+col2.metric("Pending Follow-Ups", pending)
+col3.metric("Escalated Cases", escalated)

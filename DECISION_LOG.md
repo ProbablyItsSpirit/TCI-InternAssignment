@@ -10,3 +10,8 @@ Generated Mock data like this:
 | invoice_no | client_name | amount | due_date | contact_email | follow_up_count | payment_link |
 |---|---|---|---|---|---|---|
 | INV-2026-001 | Some Name | AMT | DD-MM-YYYY | xyz@example.com | 1 | https://paymentlink.com/INV-2026-001 |
+
+Replacing gemini api key with open weight llama through Nvidia
+Added a basic email model structure for llm
+Also a prompts file for the agents. Starting with get_email_prompt which will generate a mail to people who are overdue.
+
