@@ -62,6 +62,7 @@ if st.button("Run Follow-Up Agent"):
 
             email = generate_followup_email(row)
             log_email(
+                session_id="default_session",
                 client_name=row["client_name"],
                 invoice_no=row["invoice_no"],
                 stage=row["stage"],
@@ -122,9 +123,9 @@ if logs:
         logs,
         columns=[
             "ID",
-            "Client",
+            "Client",   
             "Invoice",
-            "Stage",
+            "Stage",    
             "Subject",
             "Body",
             "Status",

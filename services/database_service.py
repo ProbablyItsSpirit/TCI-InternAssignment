@@ -11,6 +11,7 @@ def init_db():
     cursor.execute("""
     CREATE TABLE IF NOT EXISTS email_logs (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
+        session_id TEXT,
         client_name TEXT,
         invoice_no TEXT,
         stage TEXT,
@@ -26,6 +27,7 @@ def init_db():
 
 
 def log_email(
+    session_id,
     client_name,
     invoice_no,
     stage,
@@ -33,6 +35,7 @@ def log_email(
     body,
     status
 ):
+    
 
     conn = sqlite3.connect(DB_NAME)
 
@@ -40,6 +43,7 @@ def log_email(
 
     cursor.execute("""
     INSERT INTO email_logs (
+        session_id,
         client_name,
         invoice_no,
         stage,
@@ -47,8 +51,9 @@ def log_email(
         body,
         status
     )
-    VALUES (?, ?, ?, ?, ?, ?)
+    VALUES (?, ?, ?, ?, ?, ?, ?)
     """, (
+        session_id,
         client_name,
         invoice_no,
         stage,

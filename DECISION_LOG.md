@@ -28,7 +28,8 @@ Trying llama3.3 first
 #### Test - 1
 Amazing till now this is what it generated:
 
----
+<details>
+
 
 **Client:** Priya Sharma - INV-2026-002
 
@@ -40,7 +41,8 @@ Dear Priya Sharma, this is a follow-up on your overdue payment of ₹78000 for I
 
 **Tone:** Stage 2
 
----
+</details>
+
 But this still requires a little prompt update for it's tone. And it kinda sounds like very robotic or ai generated.
 
 #### Test - 2
@@ -48,7 +50,8 @@ But this still requires a little prompt update for it's tone. And it kinda sound
 Changed the mail generation tone successfully
 Newly Generated mail:
 
----
+<details>
+
 **Client:** Priya Sharma - INV-2026-002
 
 **Subject:**
@@ -65,12 +68,37 @@ Amount Due: ₹78000
 Days Overdue: 12
 Due Date: 28-04-2026
 
----
+</details>
+
 But it also generated a mail with placeholder. 
 AI hallucinating(sometimes) fixed and removed the place holder problem
-
 
 ### Phase 2
 Adding SQLite logging so I can save timestamps and send status and audit trails
 Noticed that all mails are right now in first person, changing it to third person
 
+
+<details>
+Karan Patel • INV-2026-008 • Stage 1
+
+Payment Pending
+
+**Subject**
+Payment Reminder
+
+**Email Body**
+Dear Karan, I hope this email finds you well. I am reaching out regarding your outstanding payment for invoice INV-2026-008, which was due on 09-05-2026. I completely understand that oversights can happen, and I'm more than happy to help resolve this. To avoid any late fees, could you please complete the payment of ₹18000 using our secure payment link: https://pay.company.com/INV-2026-008 at your earliest convenience? If you have any questions or concerns, please don't hesitate to reach out. I'm here to help. Best regards, Finance Collections Team
+
+**Tone**
+Warm and friendly
+
+**Invoice Details**
+Amount Due: ₹18000
+
+Days Overdue: 1
+
+Due Date: 09-05-2026
+
+</details>
+
+fixed logs saving issue
