@@ -49,22 +49,39 @@ st.subheader("AI Follow-Up Generator")
 
 if st.button("Run Follow-Up Agent"):
 
+    generated_count = 0
+
     for _, row in df.iterrows():
 
         if row["stage"] != "Escalation" and row["days_overdue"] > 0:
 
             email = generate_followup_email(row)
 
-            with st.expander(f"{row['client_name']} - {row['invoice_no']}"):
+            generated_count += 1
 
-                st.write(f"### Subject")
-                st.write(email["subject"])
+            with st.expander(
+                f"{row['client_name']} • {row['invoice_no']} • {row['stage']}"
+            ):
 
-                st.write(f"### Body")
-                st.write(email["body"])
+                st.markdown("### Subject")
+                st.markdown(email["subject"])
 
-                st.write(f"### Tone")
-                st.write(email["tone"])
+                st.markdown("### Email Body")
+                st.markdown(email["body"])
+
+                st.markdown("### Tone")
+                st.info(email["tone"])
+
+                st.markdown("### Invoice Details")
+
+                st.write(f"Amount Due: ₹{row['amount']}")
+                st.write(f"Days Overdue: {row['days_overdue']}")
+                st.write(f"Due Date: {row['due_date']}")
+
+    st.success(
+        f"Dry Run Successful • {generated_count} follow-up emails generated"
+    )
+
 
 # Escalated Cases
 
