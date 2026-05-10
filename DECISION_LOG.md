@@ -72,3 +72,5 @@ AI hallucinating(sometimes) fixed and removed the place holder problem
 
 ### Phase 2
 Adding SQLite logging so I can save timestamps and send status and audit trails
+Noticed that all mails are right now in first person, changing it to third person
+

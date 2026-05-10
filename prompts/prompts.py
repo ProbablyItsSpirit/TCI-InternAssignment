@@ -37,7 +37,8 @@ CALL TO ACTION:
 STRICT RULES:
 - Write like a real finance/accounts receivable team
 - Use natural business language
-- Do NOT sound robotic or like a clanker sound like a human
+- Write in third person from the perspective of the Finance Collections Team
+- Do NOT sound robotic or like a clanker, sound like a human
 - Do NOT repeat information unnecessarily
 
 - Mention invoice number naturally
