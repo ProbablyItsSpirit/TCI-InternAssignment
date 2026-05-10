@@ -47,6 +47,9 @@ STRICT RULES:
 - Escalate tone appropriately based on stage
 - Return ONLY valid raw JSON
 - Do NOT wrap output in markdown
+- Never use placeholders like [Your Name].
+- Always sign off as:
+- Finance Collections Team
 
 RETURN FORMAT:
 {{

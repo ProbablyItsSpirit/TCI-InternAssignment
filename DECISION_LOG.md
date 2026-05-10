@@ -25,6 +25,7 @@ Created proper llm service for it's guide
 
 Trying llama3.3 first
 
+#### Test - 1
 Amazing till now this is what it generated:
 
 ---
@@ -38,10 +39,33 @@ Overdue Payment Notification for INV-2026-002
 Dear Priya Sharma, this is a follow-up on your overdue payment of ₹78000 for Invoice INV-2026-002. The payment was due on 28-04-2026 and is now 12 days overdue. To avoid further action, please settle the amount immediately using the payment link: https://pay.company.com/INV-2026-002. We appreciate your prompt attention to this matter.
 
 **Tone:** Stage 2
-</div>
 
 ---
 But this still requires a little prompt update for it's tone. And it kinda sounds like very robotic or ai generated.
 
-Changed the mail generation tone successfully
+#### Test - 2
 
+Changed the mail generation tone successfully
+But it also generated a mail with placeholder. 
+Newly Generated mail:
+
+---
+**Client:** Priya Sharma - INV-2026-002
+
+**Subject:**
+Overdue Payment: INV-2026-002 for ₹78000
+
+**Body:**
+Dear Priya Sharma, I hope this email finds you well. I am writing to follow up on the payment for invoice INV-2026-002, which is now 12 days overdue. As per our records, the amount of ₹78000 was due on 28-04-2026. I would appreciate it if you could confirm when we can expect the payment to be made. For your convenience, you can make the payment online using the link https://pay.company.com/INV-2026-002. Please let me know the expected payment date so I can update our records accordingly. I look forward to hearing back from you soon. Best regards, [Your Name] Finance Collections Assistant
+
+**Tone:** 
+Polite but firm
+
+**Invoice Details**
+Amount Due: ₹78000
+Days Overdue: 12
+Due Date: 28-04-2026
+
+---
+
+AI hallucin
