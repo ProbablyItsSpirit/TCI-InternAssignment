@@ -109,6 +109,28 @@ escalated_df = df[df["stage"] == "Escalation"]
 
 st.dataframe(escalated_df)
 
+
+def build_logs_df(logs):
+
+    logs_df = pd.DataFrame(logs)
+
+    column_names = [
+        "ID",
+        "Session ID",
+        "Client",
+        "Invoice",
+        "Stage",
+        "Subject",
+        "Body",
+        "Status",
+        "Timestamp"
+    ]
+
+    logs_df.columns = column_names[:len(logs_df.columns)]
+
+    return logs_df
+
+
 # Audit Logs
 
 st.subheader("Audit Trail")
@@ -117,23 +139,45 @@ logs = fetch_logs()
 
 if logs:
 
-    import pandas as pd
+    logs_df = build_logs_df(logs)
 
-    logs_df = pd.DataFrame(
-        logs,
-        columns=[
-            "ID",
-            "Client",   
-            "Invoice",
-            "Stage",    
-            "Subject",
-            "Body",
-            "Status",
-            "Timestamp"
-        ]
+    # Clean View Table
+
+    st.dataframe(
+        logs_df[
+            [
+                "Client",
+                "Invoice",
+                "Stage",
+                "Status",
+                "Timestamp"
+            ]
+        ],
+        use_container_width=True
     )
 
-    st.dataframe(logs_df)
+    # Detailed Logs
+
+    st.subheader("Detailed Email Logs")
+
+    for _, row in logs_df.iterrows():
+
+        with st.expander(
+            f"{row['Client']} • {row['Invoice']} • {row['Stage']}"
+        ):
+
+            st.markdown("### Subject")
+            st.markdown(row["Subject"])
+
+            st.markdown("### Email Body")
+            st.markdown(row["Body"])
+
+            st.markdown("### Status")
+            st.info(row["Status"])
+
+            st.markdown("### Timestamp")
+            st.write(row["Timestamp"])
 
 else:
+
     st.info("No logs available.")
