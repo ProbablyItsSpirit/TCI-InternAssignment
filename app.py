@@ -1,6 +1,10 @@
 import streamlit as st
 import pandas as pd
-
+from services.database_service import (
+    init_db,
+    log_email,
+    fetch_logs
+)
 from agents.escalation_agent import (
     calculate_days_overdue,
     determine_stage
@@ -15,6 +19,7 @@ st.set_page_config(
 
 st.title("Finance Credit Follow-Up Email Agent")
 
+init_db()
 df = pd.read_csv("invoices.csv")
 
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
@@ -56,6 +61,14 @@ if st.button("Run Follow-Up Agent"):
         if row["stage"] != "Escalation" and row["days_overdue"] > 0:
 
             email = generate_followup_email(row)
+            log_email(
+                client_name=row["client_name"],
+                invoice_no=row["invoice_no"],
+                stage=row["stage"],
+                subject=email["subject"],
+                body=email["body"],
+                status="DRY_RUN_SUCCESS"
+            )
 
             generated_count += 1
 
@@ -87,7 +100,6 @@ if st.button("Run Follow-Up Agent"):
         f"Dry Run Successful • {generated_count} follow-up emails generated"
     )
 
-
 # Escalated Cases
 
 st.subheader("Escalated Cases")
@@ -95,3 +107,32 @@ st.subheader("Escalated Cases")
 escalated_df = df[df["stage"] == "Escalation"]
 
 st.dataframe(escalated_df)
+
+# Audit Logs
+
+st.subheader("Audit Trail")
+
+logs = fetch_logs()
+
+if logs:
+
+    import pandas as pd
+
+    logs_df = pd.DataFrame(
+        logs,
+        columns=[
+            "ID",
+            "Client",
+            "Invoice",
+            "Stage",
+            "Subject",
+            "Body",
+            "Status",
+            "Timestamp"
+        ]
+    )
+
+    st.dataframe(logs_df)
+
+else:
+    st.info("No logs available.")
