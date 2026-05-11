@@ -4,14 +4,14 @@ def get_email_prompt(stage, client, invoice, amount, due_date, days, payment_lin
         "Stage 1": "Warm, friendly, understanding, assumes oversight.",
         "Stage 2": "Polite but firm. Request payment confirmation.",
         "Stage 3": "Formal and serious. Mention impact of continued delay.",
-        "Stage 4": "Stern and urgent. Final reminder before escalation."
+        "Stage 4": "Highly professional, urgent, and compliance-focused. Mention that the case may be forwarded for manual/legal review if unresolved."
     }
 
     cta_rules = {
         "Stage 1": "Ask client to complete payment using the payment link.",
         "Stage 2": "Request confirmation of payment date.",
         "Stage 3": "Request response within 48 hours.",
-        "Stage 4": "Demand immediate action to avoid escalation."
+        "Stage 4": "Request immediate response and settlement to avoid further escalation."
     }
 
     return f"""
