@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from uuid import uuid4
 from services.database_service import (
     init_db,
     log_email,
@@ -18,6 +19,11 @@ st.set_page_config(
 )
 
 st.title("Finance Credit Follow-Up Email Agent")
+
+if "session_id" not in st.session_state:
+    st.session_state["session_id"] = str(uuid4())
+
+session_id = st.session_state["session_id"]
 
 
 def highlight_stage(stage):
@@ -41,6 +47,8 @@ df["stage"] = df["days_overdue"].apply(determine_stage)
 # Sidebar Filters
 
 st.sidebar.header("Filters")
+
+st.sidebar.write(f"Current Session: {session_id[:8]}")
 
 selected_stage = st.sidebar.selectbox(
     "Filter by Stage",
@@ -85,6 +93,18 @@ col2.metric("Pending Follow-Ups", pending)
 
 col3.metric("Escalated Cases", escalated)
 
+# Analytics
+
+st.subheader("Analytics")
+
+stage_counts = filtered_df["stage"].value_counts()
+st.caption("Stage Distribution")
+st.bar_chart(stage_counts)
+
+overdue_counts = filtered_df["days_overdue"].value_counts().sort_index()
+st.caption("Overdue Day Counts")
+st.bar_chart(overdue_counts)
+
 # Generate Emails
 
 st.subheader("AI Follow-Up Generator")
@@ -99,7 +119,7 @@ if st.button("Run Follow-Up Agent"):
 
             email = generate_followup_email(row)
             log_email(
-                session_id="default_session",
+                session_id=session_id,
                 client_name=row["client_name"],
                 invoice_no=row["invoice_no"],
                 stage=row["stage"],
@@ -144,6 +164,9 @@ if st.button("Run Follow-Up Agent"):
 st.subheader("Escalated Cases")
 
 escalated_df = df[df["stage"] == "Escalation"]
+
+if not escalated_df.empty:
+    st.error("Human Legal Review Required")
 
 st.dataframe(escalated_df)
 
@@ -202,6 +225,24 @@ if logs:
         ],
         use_container_width=True
     )
+
+    st.subheader("Session Tracking View")
+
+    for current_session_id, group in logs_df.groupby("Session ID", sort=False):
+
+        with st.expander(f"Session {str(current_session_id)[:8]}"):
+            st.dataframe(
+                group[
+                    [
+                        "Client",
+                        "Invoice",
+                        "Stage",
+                        "Status",
+                        "Timestamp"
+                    ]
+                ],
+                use_container_width=True
+            )
 
     # Detailed Logs
 

@@ -104,6 +104,8 @@ Due Date: 09-05-2026
 fixed logs saving issue
 adding exporting logs button and some color to the importance of stages
 Making session_ids to keep track of mailing
+streamlit chars are really good way to keep a count and by adding that the dashboard looks clean and professional 
 
-
-### Phase 
+### Phase 3
+Now that I am done with building the core mail generating agent I'll work on the SMTP
+Ofc smtp is the best method if you want to do something like this and then
