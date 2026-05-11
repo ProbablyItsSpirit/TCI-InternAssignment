@@ -147,3 +147,4 @@ while True:
 nvm removed it again, ugly and not that useful
 
 added colors to bar charts 
+moved graphs side by side
