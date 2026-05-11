@@ -176,10 +176,10 @@ def render_test_email_playground():
         payload = st.session_state.get("test_email_payload", {})
 
         st.markdown("### Subject")
-        st.write(email_result.get("subject", ""))
+        st.markdown(f"**{email_result.get('subject', '')}**")
 
         st.markdown("### Email Body")
-        st.write(email_result.get("body", ""))
+        st.markdown(email_result.get("body", ""))
 
         st.markdown("### Tone")
         st.info(email_result.get("tone", "Unknown"))
