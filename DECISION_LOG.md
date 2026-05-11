@@ -108,4 +108,6 @@ streamlit chars are really good way to keep a count and by adding that the dashb
 
 ### Phase 3
 Now that I am done with building the core mail generating agent I'll work on the SMTP
-Ofc smtp is the best method if you want to do something like this and then
+Ofc smtp is the best method if you want to do something like this 
+
+updated the prompt iterations
