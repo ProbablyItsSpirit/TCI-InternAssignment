@@ -152,3 +152,6 @@ moved graphs side by side
 The sidebar thing was not a good ux 
 So I added row based invoice selection directly from dashboard
 
+### Phase 4 - Database & Scheduling Consolidation
+Consolidated and unified database schema across `logs.db`. Replaced duplicated `invoice_db_service.py` with single implementation using try/except for safe ALTER TABLE operations. Enhanced `fetch_invoices()` to select all columns including scheduling fields (`next_followup_date`, `last_email_sent`, `followup_frequency_days`). Updated dashboard to display these scheduling columns so users can track email send history and next follow-up dates per invoice.
+

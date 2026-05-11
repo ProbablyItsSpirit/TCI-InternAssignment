@@ -50,6 +50,7 @@ def highlight_stage(stage):
 
 init_db()
 df = fetch_invoices()
+st.write("Columns in DataFrame:", df.columns.tolist())
 df["Select"] = False
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 
