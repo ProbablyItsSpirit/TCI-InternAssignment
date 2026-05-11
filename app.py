@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+import altair as alt
 from datetime import datetime, timedelta
 from uuid import uuid4
 from services.database_service import (
@@ -26,29 +27,6 @@ st.set_page_config(
     layout="wide"
 )
 
-st.markdown(
-        """
-        <div style='text-align: right; font-size: 0.95rem; color: #666;'>
-            Live Date & Time: <strong id="live-clock"></strong>
-        </div>
-        <script>
-        const updateClock = () => {
-            const now = new Date();
-            const pad = n => n.toString().padStart(2,'0');
-            const day = pad(now.getDate());
-            const month = pad(now.getMonth() + 1);
-            const year = now.getFullYear();
-            const hours = pad(now.getHours());
-            const minutes = pad(now.getMinutes());
-            const seconds = pad(now.getSeconds());
-            document.getElementById('live-clock').innerText = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
-        };
-        setInterval(updateClock, 1000);
-        updateClock();
-        </script>
-        """,
-        unsafe_allow_html=True,
-)
 
 st.title("Finance Credit Follow-Up Email Agent")
 
@@ -158,13 +136,49 @@ col3.metric("Escalated Cases", escalated)
 
 st.subheader("Analytics")
 
-stage_counts = filtered_df["stage"].value_counts()
-st.caption("Stage Distribution")
-st.bar_chart(stage_counts)
+# Color mapping for stages
+stage_colors = {
+    "Stage 1": "#2ca02c",
+    "Stage 2": "#ffcc00",
+    "Stage 3": "#ff7f0e",
+    "Stage 4": "#d62728",
+    "Escalation": "#000000"
+}
 
-overdue_counts = filtered_df["days_overdue"].value_counts().sort_index()
-st.caption("Overdue Day Counts")
-st.bar_chart(overdue_counts)
+# Stage distribution (colored by stage)
+stage_df = (
+    filtered_df.groupby("stage").size().reset_index(name="count")
+)
+stage_chart = alt.Chart(stage_df).mark_bar().encode(
+    x=alt.X("stage:N", sort=alt.EncodingSortField(field="count", op="sum", order="descending")),
+    y="count:Q",
+    color=alt.Color(
+        "stage:N",
+        scale=alt.Scale(domain=list(stage_colors.keys()), range=list(stage_colors.values())),
+        legend=alt.Legend(title="Stage")
+    ),
+    tooltip=["stage:N", "count:Q"]
+).properties(title="Stage Distribution")
+
+st.altair_chart(stage_chart, use_container_width=True)
+
+# Overdue day counts colored by stage (stacked)
+overdue_df = (
+    filtered_df.groupby(["days_overdue", "stage"]).size().reset_index(name="count")
+)
+
+overdue_chart = alt.Chart(overdue_df).mark_bar().encode(
+    x=alt.X("days_overdue:O", title="Days Overdue"),
+    y=alt.Y("count:Q", title="Count"),
+    color=alt.Color(
+        "stage:N",
+        scale=alt.Scale(domain=list(stage_colors.keys()), range=list(stage_colors.values())),
+        legend=alt.Legend(title="Stage")
+    ),
+    tooltip=["days_overdue:O", "stage:N", "count:Q"]
+).properties(title="Overdue Day Counts by Stage")
+
+st.altair_chart(overdue_chart, use_container_width=True)
 
 # Generate Emails
 

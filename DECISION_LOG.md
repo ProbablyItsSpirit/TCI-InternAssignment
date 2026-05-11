@@ -143,3 +143,7 @@ while True:
         
     time.sleep(1)
 ```
+
+nvm removed it again, ugly and not that useful
+
+added colors to bar charts 
