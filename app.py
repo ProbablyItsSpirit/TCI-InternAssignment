@@ -149,12 +149,20 @@ stage_colors = {
 stage_df = (
     filtered_df.groupby("stage").size().reset_index(name="count")
 )
+
+stage_order_df = stage_df.sort_values("count", ascending=False)
+ordered_stages = [s for s in stage_order_df["stage"].tolist() if s != "Escalation"]
+if "Escalation" in stage_df["stage"].tolist():
+    ordered_stages.append("Escalation")
+
+colors_list = [stage_colors.get(s, "#777777") for s in ordered_stages]
+
 stage_chart = alt.Chart(stage_df).mark_bar().encode(
-    x=alt.X("stage:N", sort=alt.EncodingSortField(field="count", op="sum", order="descending")),
+    x=alt.X("stage:N", sort=ordered_stages),
     y="count:Q",
     color=alt.Color(
         "stage:N",
-        scale=alt.Scale(domain=list(stage_colors.keys()), range=list(stage_colors.values())),
+        scale=alt.Scale(domain=ordered_stages, range=colors_list),
         legend=alt.Legend(title="Stage")
     ),
     tooltip=["stage:N", "count:Q"]
