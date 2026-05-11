@@ -153,7 +153,7 @@ The sidebar thing was not a good ux
 So I added row based invoice selection directly from dashboard
 
 ### Phase 4 
-db & scheduling Consolidation
+actually doing the smtp part now after whole lot of fixing and stuff
 unified database selected 
 Then updated dashboard to display these scheduling columns so users can track email sent history
 

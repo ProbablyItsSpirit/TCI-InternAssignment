@@ -65,7 +65,6 @@ def highlight_stage(stage):
 
 init_db()
 df = fetch_invoices()
-st.write("Columns in DataFrame:", df.columns.tolist())
 df["Select"] = False
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 
@@ -101,10 +100,12 @@ st.sidebar.header("Filters")
 
 st.sidebar.write(f"Current Session: {session_id[:8]}")
 
+available_stages = [stage for stage in stage_filter_order if stage in df["stage"].unique()]
+
 selected_stages = st.sidebar.multiselect(
     "Filter by Stages",
-    options=[stage for stage in stage_filter_order if stage in df["stage"].unique()],
-    default=[stage for stage in stage_filter_order if stage in df["stage"].unique()]
+    options=["All Stages"] + available_stages,
+    default=["All Stages"]
 )
 
 min_overdue = st.sidebar.slider(
@@ -116,9 +117,9 @@ min_overdue = st.sidebar.slider(
 
 filtered_df = df.copy()
 
-filtered_df = filtered_df[
-    filtered_df["stage"].isin(selected_stages)
-]
+if "All Stages" not in selected_stages:
+    filtered_df = filtered_df[filtered_df["stage"].isin(selected_stages)]
+
 filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
 
 
@@ -126,8 +127,6 @@ filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
 # Dashboard
 
 st.subheader("Invoice Dashboard")
-styled_df = filtered_df.style
-
 display_columns = [
     "Select",
     "client_name",
@@ -146,8 +145,13 @@ display_columns = [
 # Only show columns that exist in the dataframe
 display_columns = [col for col in display_columns if col in filtered_df.columns]
 
+select_all = st.sidebar.checkbox(
+    "Select All Visible Invoices"
+)
+if select_all:
+    filtered_df["Select"] = True
 edited_df = st.data_editor(
-    styled_df,
+    filtered_df,
     use_container_width=True,
     hide_index=True,
     column_order=display_columns,
@@ -170,11 +174,24 @@ st.sidebar.subheader("Selected Clients")
 
 if selected_clients:
 
-    for client in selected_clients:
-        st.sidebar.success(client)
+    st.sidebar.caption(
+        f"{len(selected_clients)} client(s) selected"
+    )
+
+    st.sidebar.code(
+        ", ".join(selected_clients[:5])
+        + (
+            " ..."
+            if len(selected_clients) > 5
+            else ""
+        )
+    )
 
 else:
+
     st.sidebar.info("No clients selected")
+
+
 # Metrics
 
 total = len(df)
@@ -242,8 +259,13 @@ stage_chart = alt.Chart(stage_df).mark_bar().encode(
     ),
     tooltip=["stage:N", "count:Q"]
 ).properties(title="Stage Distribution")
+chart_col1, chart_col2 = st.columns(2)
 
-st.altair_chart(stage_chart, use_container_width=True)
+with chart_col1:
+    st.altair_chart(
+        stage_chart,
+        use_container_width=True
+    )
 
 # Overdue day counts colored by stage (stacked)
 overdue_df = (
@@ -261,7 +283,11 @@ overdue_chart = alt.Chart(overdue_df).mark_bar().encode(
     tooltip=["days_overdue:O", "stage:N", "count:Q"]
 ).properties(title="Overdue Day Counts by Stage")
 
-st.altair_chart(overdue_chart, use_container_width=True)
+with chart_col2:
+    st.altair_chart(
+        overdue_chart,
+        use_container_width=True
+    )
 
 # Generate Emails
 
