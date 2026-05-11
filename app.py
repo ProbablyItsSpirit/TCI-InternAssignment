@@ -3,6 +3,7 @@ import pandas as pd
 import altair as alt
 from datetime import datetime, timedelta
 from uuid import uuid4
+from services.email_service import send_email
 from services.database_service import (
     init_db,
     log_email,
@@ -318,6 +319,20 @@ if run_agent:
                 continue
             
             email = generate_followup_email(row)
+            email_status = "DRY_RUN_SUCCESS"
+
+            if not dry_run:
+                smtp_success = send_email(
+                    row["contact_email"],
+                    email["subject"],
+                    email["body"]
+                )
+
+                if smtp_success:
+                    email_status = "EMAIL_SENT"
+                else:
+                    email_status = "EMAIL_FAILED"
+
             log_email(
                 session_id=session_id,
                 client_name=row["client_name"],
@@ -325,7 +340,7 @@ if run_agent:
                 stage=row["stage"],
                 subject=email["subject"],
                 body=email["body"],
-                status="DRY_RUN_SUCCESS"
+                status=email_status
             )
 
             # Calculate next follow-up date for scheduling (will be persisted below)
@@ -337,6 +352,16 @@ if run_agent:
             update_last_email_sent(row["invoice_no"])
             update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
             increment_followup_count(row["invoice_no"])
+
+            if email_status == "EMAIL_SENT":
+                st.success(
+                    f"Email sent to {row['contact_email']}"
+                )
+
+            elif email_status == "EMAIL_FAILED":
+                st.error(
+                    f"Failed sending to {row['contact_email']}"
+                )
 
             generated_count += 1
 
