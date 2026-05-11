@@ -171,4 +171,5 @@ added approval mode and also if email fails retry failed email button
 added email delivery analytics as well 
 Human Approval mode works flawlessly
 
-generated mails had parsing error (fixed)
+generated mails had parsing error (fixed) 
+json parsing issue
