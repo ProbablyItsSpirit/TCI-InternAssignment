@@ -57,6 +57,11 @@ STRICT RULES:
 - Never use placeholders like [Your Name].
 - Always sign off as:
 - Finance Collections Team
+- IMPORTANT:
+    Return ONLY raw valid JSON.
+    Do not add explanations.
+    Do not add markdown.
+    Do not add ```json
 RETURN FORMAT:
 {{
     "subject": "...",
