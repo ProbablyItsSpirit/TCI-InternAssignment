@@ -4,7 +4,8 @@ from uuid import uuid4
 from services.database_service import (
     init_db,
     log_email,
-    fetch_logs
+    fetch_logs,
+    fetch_invoices
 )
 from agents.escalation_agent import (
     calculate_days_overdue,
@@ -39,7 +40,7 @@ def highlight_stage(stage):
     return colors.get(stage, "")
 
 init_db()
-df = pd.read_csv("invoices.csv")
+df = fetch_invoices()
 
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 

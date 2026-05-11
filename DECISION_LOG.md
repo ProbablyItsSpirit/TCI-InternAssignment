@@ -111,3 +111,7 @@ Now that I am done with building the core mail generating agent I'll work on the
 Ofc smtp is the best method if you want to do something like this 
 
 updated the prompt iterations
+Instead of using the data csv, i moved it inside the sqllite 
+
+Added more columns to show last mail sent date and follow_up mail freq for every person yet to pay (individual system)
+also added next follow up date
