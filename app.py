@@ -8,6 +8,12 @@ from services.database_service import (
     fetch_logs,
     fetch_invoices
 )
+from services.invoice_db_service import (
+    update_last_email_sent,
+    update_next_followup,
+    increment_followup_count,
+    should_send_followup
+)
 from agents.escalation_agent import (
     calculate_days_overdue,
     determine_stage
@@ -176,18 +182,7 @@ if st.button("Run Follow-Up Agent"):
                 continue
 
             # Scheduling Logic
-            next_followup = row.get("next_followup_date")
-            should_send = True
-            if pd.notna(next_followup) and next_followup:
-                next_followup_date = datetime.strptime(
-                    next_followup,
-                    "%Y-%m-%d"
-                )
-
-                if datetime.today() < next_followup_date:
-                    should_send = False
-
-            if not should_send:
+            if not should_send_followup(row.get("next_followup_date")):
                 continue
             
             email = generate_followup_email(row)
@@ -201,10 +196,15 @@ if st.button("Run Follow-Up Agent"):
                 status="DRY_RUN_SUCCESS"
             )
 
-            # Calculate next follow-up date for scheduling (will be persisted later)
+            # Calculate next follow-up date for scheduling (will be persisted below)
             next_followup_date = (
                 datetime.today() + timedelta(days=mail_frequency)
             ).strftime("%Y-%m-%d")
+
+            # Persist scheduling changes to invoices DB
+            update_last_email_sent(row["invoice_no"])
+            update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
+            increment_followup_count(row["invoice_no"])
 
             generated_count += 1
 
