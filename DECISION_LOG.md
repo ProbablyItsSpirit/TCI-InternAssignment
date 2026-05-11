@@ -173,3 +173,9 @@ Human Approval mode works flawlessly
 
 generated mails had parsing error (fixed) 
 json parsing issue
+
+Implemented LangSmith tracing for parsing behavior and workflow execution and prompts
+
+Added playground mode to test mailing without datasets
+
+Fixed reject and accept button to send

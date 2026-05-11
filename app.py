@@ -50,6 +50,9 @@ st.markdown(
 if "session_id" not in st.session_state:
     st.session_state["session_id"] = str(uuid4())
 
+if "pending_approvals" not in st.session_state:
+    st.session_state["pending_approvals"] = {}
+
 session_id = st.session_state["session_id"]
 
 
@@ -66,29 +69,11 @@ def highlight_stage(stage):
     return colors.get(stage, "")
 
 
-def process_email_action(
-    row,
-    *,
-    approval_mode,
-    dry_run,
-    mail_frequency,
-    session_id,
-    widget_key_prefix
-):
+def send_prepared_email(row, email, *, dry_run, mail_frequency, session_id):
 
-    email = generate_followup_email(row)
+    email_status = "DRY_RUN_SUCCESS"
 
-    if approval_mode:
-        send_now = st.checkbox(
-            f"Approve sending to {row['client_name']}",
-            key=f"{widget_key_prefix}_{row['invoice_no']}"
-        )
-    else:
-        send_now = True
-
-    email_status = "PENDING"
-
-    if send_now and not dry_run:
+    if not dry_run:
         smtp_success = send_email(
             row["contact_email"],
             email["subject"],
@@ -98,23 +83,17 @@ def process_email_action(
         if smtp_success:
             email_status = "EMAIL_SENT"
             update_invoice_status(row["invoice_no"], "SENT")
+
+            next_followup_date = (
+                datetime.today() + timedelta(days=mail_frequency)
+            ).strftime("%Y-%m-%d")
+
+            update_last_email_sent(row["invoice_no"])
+            update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
+            increment_followup_count(row["invoice_no"])
         else:
             email_status = "EMAIL_FAILED"
             update_invoice_status(row["invoice_no"], "FAILED")
-
-        next_followup_date = (
-            datetime.today() + timedelta(days=mail_frequency)
-        ).strftime("%Y-%m-%d")
-
-        update_last_email_sent(row["invoice_no"])
-        update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
-        increment_followup_count(row["invoice_no"])
-
-    elif send_now and dry_run:
-        email_status = "DRY_RUN_SUCCESS"
-
-    else:
-        update_invoice_status(row["invoice_no"], "PENDING")
 
     log_email(
         session_id=session_id,
@@ -126,7 +105,28 @@ def process_email_action(
         status=email_status
     )
 
-    return email, email_status, send_now
+    return email_status
+
+
+def queue_for_approval(row, email, *, session_id, source):
+
+    invoice_no = row["invoice_no"]
+    st.session_state["pending_approvals"][invoice_no] = {
+        "row": dict(row),
+        "email": dict(email),
+        "source": source,
+    }
+
+    update_invoice_status(invoice_no, "PENDING")
+    log_email(
+        session_id=session_id,
+        client_name=row["client_name"],
+        invoice_no=invoice_no,
+        stage=row["stage"],
+        subject=email["subject"],
+        body=email["body"],
+        status="AWAITING_APPROVAL"
+    )
 
 
 def render_test_email_playground():
@@ -479,14 +479,24 @@ if run_agent:
             if not should_send_followup(row.get("next_followup_date")):
                 continue
 
-            email, email_status, send_now = process_email_action(
-                row,
-                approval_mode=approval_mode,
-                dry_run=dry_run,
-                mail_frequency=mail_frequency,
-                session_id=session_id,
-                widget_key_prefix="send"
-            )
+            email = generate_followup_email(row)
+
+            if approval_mode:
+                queue_for_approval(
+                    row,
+                    email,
+                    session_id=session_id,
+                    source="campaign"
+                )
+                email_status = "PENDING"
+            else:
+                email_status = send_prepared_email(
+                    row,
+                    email,
+                    dry_run=dry_run,
+                    mail_frequency=mail_frequency,
+                    session_id=session_id
+                )
 
             if email_status == "EMAIL_SENT":
                 st.success(
@@ -549,14 +559,24 @@ if retry_failed_emails:
         for _, row in failed_rows.iterrows():
 
             if row["stage"] != "Escalation" and row["days_overdue"] > 0:
-                email, email_status, send_now = process_email_action(
-                    row,
-                    approval_mode=approval_mode,
-                    dry_run=dry_run,
-                    mail_frequency=mail_frequency,
-                    session_id=session_id,
-                    widget_key_prefix="retry"
-                )
+                email = generate_followup_email(row)
+
+                if approval_mode:
+                    queue_for_approval(
+                        row,
+                        email,
+                        session_id=session_id,
+                        source="retry"
+                    )
+                    email_status = "PENDING"
+                else:
+                    email_status = send_prepared_email(
+                        row,
+                        email,
+                        dry_run=dry_run,
+                        mail_frequency=mail_frequency,
+                        session_id=session_id
+                    )
 
                 if email_status == "EMAIL_SENT":
                     st.success(
@@ -574,6 +594,59 @@ if retry_failed_emails:
                 retry_count += 1
 
         st.success(f"Retry process completed for {retry_count} failed email(s).")
+
+if approval_mode and st.session_state["pending_approvals"]:
+
+    st.subheader("Pending Human Approval")
+
+    for invoice_no, payload in list(st.session_state["pending_approvals"].items()):
+        row = payload["row"]
+        email = payload["email"]
+
+        with st.expander(f"{row['client_name']} • {invoice_no} • Awaiting Approval"):
+            st.markdown("### Subject")
+            st.markdown(email.get("subject", ""))
+
+            st.markdown("### Email Body")
+            st.markdown(email.get("body", ""))
+
+            action_col1, action_col2 = st.columns(2)
+
+            with action_col1:
+                if st.button("Approve & Send", key=f"approve_{invoice_no}"):
+                    status = send_prepared_email(
+                        row,
+                        email,
+                        dry_run=dry_run,
+                        mail_frequency=mail_frequency,
+                        session_id=session_id
+                    )
+
+                    if status == "EMAIL_SENT":
+                        st.success(f"Email sent to {row['contact_email']}")
+                    elif status == "DRY_RUN_SUCCESS":
+                        st.success(f"Dry run successful for {row['contact_email']}")
+                    else:
+                        st.error(f"Failed sending to {row['contact_email']}")
+
+                    del st.session_state["pending_approvals"][invoice_no]
+                    st.rerun()
+
+            with action_col2:
+                if st.button("Reject", key=f"reject_{invoice_no}"):
+                    update_invoice_status(invoice_no, "PENDING")
+                    log_email(
+                        session_id=session_id,
+                        client_name=row["client_name"],
+                        invoice_no=invoice_no,
+                        stage=row["stage"],
+                        subject=email.get("subject", ""),
+                        body=email.get("body", ""),
+                        status="REJECTED_BY_HUMAN"
+                    )
+                    st.warning(f"Email rejected for {row['contact_email']}")
+                    del st.session_state["pending_approvals"][invoice_no]
+                    st.rerun()
 
 # Escalated Cases
 

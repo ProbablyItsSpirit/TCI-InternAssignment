@@ -5,6 +5,15 @@ import re
 from dotenv import load_dotenv
 from openai import OpenAI
 
+try:
+    from langsmith import traceable
+except Exception:
+    # No-op fallback when langsmith is not installed/configured.
+    def traceable(*args, **kwargs):
+        def decorator(func):
+            return func
+        return decorator
+
 load_dotenv()
 
 client = OpenAI(
@@ -13,6 +22,7 @@ client = OpenAI(
 )
 
 
+@traceable(name="extract_json", run_type="parser")
 def extract_json(text):
 
     def escape_control_chars_inside_strings(json_text):
@@ -104,7 +114,8 @@ def extract_json(text):
         "stage": "Unknown"
     }
 
-def generate_response(prompt):
+@traceable(name="invoke_llm", run_type="llm")
+def _invoke_llm(prompt):
 
     completion = client.chat.completions.create(
         model="meta/llama-3.3-70b-instruct",
@@ -122,6 +133,14 @@ def generate_response(prompt):
         max_tokens=400
     )
 
+    return completion.choices[0].message.content
+
+
+@traceable(name="generate_response", run_type="chain")
+def generate_response(prompt):
+
+    raw_content = _invoke_llm(prompt)
+
     return extract_json(
-        completion.choices[0].message.content
+        raw_content
     )

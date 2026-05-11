@@ -19,6 +19,9 @@ Quick app for finance collections follow up workflows with scheduling, audit log
 	- `EMAIL_ADDRESS`
 	- `EMAIL_PASSWORD`
 	- `NVIDIA_API_KEY`
+	- `LANGSMITH_API_KEY` (optional, enables tracing)
+	- `LANGSMITH_TRACING=true` (optional, enables tracing)
+	- `LANGSMITH_PROJECT` (optional project name)
 
 ## Local Setup
 
