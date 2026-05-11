@@ -21,10 +21,27 @@ st.set_page_config(
 )
 
 st.markdown(
-    f"<div style='text-align: right; font-size: 0.95rem; color: #666;'>"
-    f"Date & Time: <strong>{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}</strong>"
-    f"</div>",
-    unsafe_allow_html=True
+        """
+        <div style='text-align: right; font-size: 0.95rem; color: #666;'>
+            Live Date & Time: <strong id="live-clock"></strong>
+        </div>
+        <script>
+        const updateClock = () => {
+            const now = new Date();
+            const pad = n => n.toString().padStart(2,'0');
+            const day = pad(now.getDate());
+            const month = pad(now.getMonth() + 1);
+            const year = now.getFullYear();
+            const hours = pad(now.getHours());
+            const minutes = pad(now.getMinutes());
+            const seconds = pad(now.getSeconds());
+            document.getElementById('live-clock').innerText = `${day}-${month}-${year} ${hours}:${minutes}:${seconds}`;
+        };
+        setInterval(updateClock, 1000);
+        updateClock();
+        </script>
+        """,
+        unsafe_allow_html=True,
 )
 
 st.title("Finance Credit Follow-Up Email Agent")

@@ -120,3 +120,26 @@ Added date and time on top of dashboard
 
 (nvm removed that don't update live)
 
+implemented a whole clock system now based on this: 
+
+```
+import streamlit as st
+import datetime
+import time
+
+st.title("Live Time and Date")
+
+placeholder = st.empty()
+
+# Loop to update time every second
+while True:
+    now = datetime.datetime.now()
+    # Format date and time
+    dt_string = now.strftime("%Y-%m-%d %H:%M:%S")
+    
+    # Update the placeholder container
+    with placeholder.container():
+        st.write(f"Current Time: {dt_string}")
+        
+    time.sleep(1)
+```
