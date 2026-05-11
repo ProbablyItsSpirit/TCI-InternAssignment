@@ -168,7 +168,7 @@ stage_chart = alt.Chart(stage_df).mark_bar().encode(
     tooltip=["stage:N", "count:Q"]
 ).properties(title="Stage Distribution")
 
-st.altair_chart(stage_chart.properties(width=600), use_container_width=False)
+st.altair_chart(stage_chart, use_container_width=True)
 
 # Overdue day counts colored by stage (stacked)
 overdue_df = (
@@ -186,7 +186,7 @@ overdue_chart = alt.Chart(overdue_df).mark_bar().encode(
     tooltip=["days_overdue:O", "stage:N", "count:Q"]
 ).properties(title="Overdue Day Counts by Stage")
 
-st.altair_chart(overdue_chart.properties(width=600), use_container_width=False)
+st.altair_chart(overdue_chart, use_container_width=True)
 
 # Generate Emails
 
