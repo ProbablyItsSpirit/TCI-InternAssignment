@@ -1,5 +1,6 @@
 import streamlit as st
 import pandas as pd
+from datetime import datetime, timedelta
 from uuid import uuid4
 from services.database_service import (
     init_db,
@@ -17,6 +18,13 @@ from agents.email_agent import generate_followup_email
 st.set_page_config(
     page_title="Finance Follow-Up Agent",
     layout="wide"
+)
+
+st.markdown(
+    f"<div style='text-align: right; font-size: 0.95rem; color: #666;'>"
+    f"Date & Time: <strong>{datetime.now().strftime('%d-%m-%Y %H:%M:%S')}</strong>"
+    f"</div>",
+    unsafe_allow_html=True
 )
 
 st.title("Finance Credit Follow-Up Email Agent")
@@ -46,6 +54,35 @@ df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 
 df["stage"] = df["days_overdue"].apply(determine_stage)
 # Sidebar Filters
+
+st.sidebar.header("Scheduling Controls")
+
+mail_frequency = st.sidebar.selectbox(
+    "Send Follow-Up Every",
+    [1, 2, 3, 5, 7, 14, 30],
+    index=4
+)
+
+st.sidebar.caption(
+    f"Follow-up emails will be scheduled every {mail_frequency} day(s)"
+)
+
+selected_clients = st.sidebar.multiselect(
+    "Select Clients To Send",
+    df["client_name"].unique(),
+    default=df["client_name"].unique()
+)
+
+dry_run = st.sidebar.toggle(
+    "Dry Run Mode",
+    value=True
+)
+
+if dry_run:
+    st.sidebar.success("Sandbox Mode Enabled")
+else:
+    st.sidebar.warning("Real Email Sending Enabled")
+
 
 st.sidebar.header("Filters")
 
@@ -117,7 +154,25 @@ if st.button("Run Follow-Up Agent"):
     for _, row in df.iterrows():
 
         if row["stage"] != "Escalation" and row["days_overdue"] > 0:
+            # Client Selection Filter
+            if row["client_name"] not in selected_clients:
+                continue
 
+            # Scheduling Logic
+            next_followup = row.get("next_followup_date")
+            should_send = True
+            if pd.notna(next_followup) and next_followup:
+                next_followup_date = datetime.strptime(
+                    next_followup,
+                    "%Y-%m-%d"
+                )
+
+                if datetime.today() < next_followup_date:
+                    should_send = False
+
+            if not should_send:
+                continue
+            
             email = generate_followup_email(row)
             log_email(
                 session_id=session_id,
@@ -128,6 +183,11 @@ if st.button("Run Follow-Up Agent"):
                 body=email["body"],
                 status="DRY_RUN_SUCCESS"
             )
+
+            # Calculate next follow-up date for scheduling (will be persisted later)
+            next_followup_date = (
+                datetime.today() + timedelta(days=mail_frequency)
+            ).strftime("%Y-%m-%d")
 
             generated_count += 1
 
