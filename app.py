@@ -30,6 +30,21 @@ st.set_page_config(
 
 st.title("Finance Credit Follow-Up Email Agent")
 
+st.markdown(
+    """
+    <style>
+    div[data-testid="stDataFrame"] table tbody td:first-child,
+    div[data-testid="stDataFrame"] table thead th:first-child {
+        position: sticky;
+        left: 0;
+        z-index: 2;
+        background: white;
+    }
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
 if "session_id" not in st.session_state:
     st.session_state["session_id"] = str(uuid4())
 
@@ -58,10 +73,7 @@ df["stage"] = df["days_overdue"].apply(determine_stage)
 # Sidebar Filters
 
 st.sidebar.header("Scheduling Controls")
-highlight_stage_filter = st.sidebar.selectbox(
-    "Highlight Stage",
-    ["None"] + list(df["stage"].unique())
-)
+stage_filter_order = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Escalation"]
 mail_frequency = st.sidebar.selectbox(
     "Send Follow-Up Every",
     [1, 2, 3, 5, 7, 14, 30],
@@ -91,8 +103,8 @@ st.sidebar.write(f"Current Session: {session_id[:8]}")
 
 selected_stages = st.sidebar.multiselect(
     "Filter by Stages",
-    options=list(df["stage"].unique()),
-    default=list(df["stage"].unique())
+    options=[stage for stage in stage_filter_order if stage in df["stage"].unique()],
+    default=[stage for stage in stage_filter_order if stage in df["stage"].unique()]
 )
 
 min_overdue = st.sidebar.slider(
@@ -114,22 +126,7 @@ filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
 # Dashboard
 
 st.subheader("Invoice Dashboard")
-def highlight_rows(row):
-
-    if highlight_stage_filter != "None":
-
-        if row["stage"] == highlight_stage_filter:
-
-            return [
-                "background-color: rgba(255,255,0,0.2)"
-            ] * len(row)
-
-    return [""] * len(row)
-
-styled_df = filtered_df.style.apply(
-    highlight_rows,
-    axis=1
-)
+styled_df = filtered_df.style
 
 display_columns = [
     "Select",
@@ -150,9 +147,17 @@ display_columns = [
 display_columns = [col for col in display_columns if col in filtered_df.columns]
 
 edited_df = st.data_editor(
-    styled_df[display_columns],
+    styled_df,
     use_container_width=True,
-    hide_index=True
+    hide_index=True,
+    column_order=display_columns,
+    column_config={
+        "Select": st.column_config.CheckboxColumn(
+            "Select",
+            help="Select invoice for follow-up",
+            default=False,
+        )
+    }
 )
 
 selected_rows = edited_df[
