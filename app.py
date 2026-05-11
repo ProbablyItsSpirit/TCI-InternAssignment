@@ -50,14 +50,17 @@ def highlight_stage(stage):
 
 init_db()
 df = fetch_invoices()
-
+df["Select"] = False
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
 
 df["stage"] = df["days_overdue"].apply(determine_stage)
 # Sidebar Filters
 
 st.sidebar.header("Scheduling Controls")
-
+highlight_stage_filter = st.sidebar.selectbox(
+    "Highlight Stage",
+    ["None"] + list(df["stage"].unique())
+)
 mail_frequency = st.sidebar.selectbox(
     "Send Follow-Up Every",
     [1, 2, 3, 5, 7, 14, 30],
@@ -68,11 +71,7 @@ st.sidebar.caption(
     f"Follow-up emails will be scheduled every {mail_frequency} day(s)"
 )
 
-selected_clients = st.sidebar.multiselect(
-    "Select Clients To Send",
-    df["client_name"].unique(),
-    default=df["client_name"].unique()
-)
+
 
 dry_run = st.sidebar.toggle(
     "Dry Run Mode",
@@ -89,9 +88,10 @@ st.sidebar.header("Filters")
 
 st.sidebar.write(f"Current Session: {session_id[:8]}")
 
-selected_stage = st.sidebar.selectbox(
-    "Filter by Stage",
-    ["All"] + list(df["stage"].unique())
+selected_stages = st.sidebar.multiselect(
+    "Filter by Stages",
+    options=list(df["stage"].unique()),
+    default=list(df["stage"].unique())
 )
 
 min_overdue = st.sidebar.slider(
@@ -103,9 +103,9 @@ min_overdue = st.sidebar.slider(
 
 filtered_df = df.copy()
 
-if selected_stage != "All":
-    filtered_df = filtered_df[filtered_df["stage"] == selected_stage]
-
+filtered_df = filtered_df[
+    filtered_df["stage"].isin(selected_stages)
+]
 filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
 
 
@@ -113,9 +113,62 @@ filtered_df = filtered_df[filtered_df["days_overdue"] >= min_overdue]
 # Dashboard
 
 st.subheader("Invoice Dashboard")
+def highlight_rows(row):
 
-st.dataframe(filtered_df, use_container_width=True)
+    if highlight_stage_filter != "None":
 
+        if row["stage"] == highlight_stage_filter:
+
+            return [
+                "background-color: rgba(255,255,0,0.2)"
+            ] * len(row)
+
+    return [""] * len(row)
+
+styled_df = filtered_df.style.apply(
+    highlight_rows,
+    axis=1
+)
+
+display_columns = [
+    "Select",
+    "client_name",
+    "invoice_no",
+    "amount",
+    "due_date",
+    "days_overdue",
+    "stage",
+    "last_email_sent",
+    "next_followup_date",
+    "follow_up_count",
+    "contact_email",
+    "payment_link"
+]
+
+# Only show columns that exist in the dataframe
+display_columns = [col for col in display_columns if col in filtered_df.columns]
+
+edited_df = st.data_editor(
+    styled_df[display_columns],
+    use_container_width=True,
+    hide_index=True
+)
+
+selected_rows = edited_df[
+    edited_df["Select"] == True
+]
+
+selected_clients = selected_rows["client_name"].tolist()
+
+st.sidebar.subheader("Selected Clients")
+
+if selected_clients:
+
+    for client in selected_clients:
+        st.sidebar.success(client)
+
+else:
+    st.sidebar.info("No clients selected")
 # Metrics
 
 total = len(df)
@@ -131,7 +184,23 @@ col1.metric("Total Invoices", total)
 col2.metric("Pending Follow-Ups", pending)
 
 col3.metric("Escalated Cases", escalated)
+st.subheader("Upcoming Follow-Ups")
 
+upcoming_df = df[
+    df["next_followup_date"].notna()
+][
+    [
+        "client_name",
+        "invoice_no",
+        "next_followup_date",
+        "stage"
+    ]
+]
+
+st.dataframe(
+    upcoming_df,
+    use_container_width=True
+)
 # Analytics
 
 st.subheader("Analytics")
@@ -192,11 +261,20 @@ st.altair_chart(overdue_chart, use_container_width=True)
 
 st.subheader("AI Follow-Up Generator")
 
-if st.button("Run Follow-Up Agent"):
+st.info(
+    f"{len(selected_rows)} invoice(s) selected for follow-up"
+)
+
+run_agent = st.sidebar.button(
+    "Run Follow-Up Agent",
+    use_container_width=True
+)
+
+if run_agent:
 
     generated_count = 0
 
-    for _, row in df.iterrows():
+    for _, row in selected_rows.iterrows():
 
         if row["stage"] != "Escalation" and row["days_overdue"] > 0:
             # Client Selection Filter

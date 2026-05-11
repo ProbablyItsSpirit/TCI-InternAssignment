@@ -148,3 +148,7 @@ nvm removed it again, ugly and not that useful
 
 added colors to bar charts 
 moved graphs side by side
+
+The sidebar thing was not a good ux 
+So I added row based invoice selection directly from dashboard
+

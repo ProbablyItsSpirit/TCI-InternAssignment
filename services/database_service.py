@@ -38,9 +38,45 @@ def init_db():
         due_date TEXT,
         contact_email TEXT,
         follow_up_count INTEGER,
-        payment_link TEXT
+        payment_link TEXT,
+        next_followup_date TEXT,
+        last_email_sent TEXT,
+        followup_frequency_days INTEGER
     )
     """)
+
+    # Ensure scheduling columns exist (for existing tables)
+    try:
+        cursor.execute("""
+        ALTER TABLE invoices
+        ADD COLUMN last_email_sent TEXT
+        """)
+    except:
+        pass
+
+    try:
+        cursor.execute("""
+        ALTER TABLE invoices
+        ADD COLUMN next_followup_date TEXT
+        """)
+    except:
+        pass
+
+    try:
+        cursor.execute("""
+        ALTER TABLE invoices
+        ADD COLUMN followup_frequency_days INTEGER
+        """)
+    except:
+        pass
+
+    try:
+        cursor.execute("""
+        ALTER TABLE invoices
+        ADD COLUMN follow_up_count INTEGER DEFAULT 0
+        """)
+    except:
+        pass
 
     cursor.execute("SELECT COUNT(*) FROM invoices")
     invoice_count = cursor.fetchone()[0]
@@ -72,8 +108,7 @@ def fetch_invoices():
 
         return pd.read_sql_query(
             """
-            SELECT invoice_no, client_name, amount, due_date, contact_email,
-                   follow_up_count, payment_link
+            SELECT *
             FROM invoices
             ORDER BY invoice_no
             """,
