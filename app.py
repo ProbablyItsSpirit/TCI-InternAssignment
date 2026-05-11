@@ -14,7 +14,8 @@ from services.invoice_db_service import (
     update_last_email_sent,
     update_next_followup,
     increment_followup_count,
-    should_send_followup
+    should_send_followup,
+    update_invoice_status
 )
 from agents.escalation_agent import (
     calculate_days_overdue,
@@ -139,6 +140,7 @@ display_columns = [
     "last_email_sent",
     "next_followup_date",
     "follow_up_count",
+    "last_status",
     "contact_email",
     "payment_link"
 ]
@@ -332,6 +334,17 @@ if run_agent:
                     email_status = "EMAIL_SENT"
                 else:
                     email_status = "EMAIL_FAILED"
+
+                if smtp_success:
+                    update_invoice_status(
+                        row["invoice_no"],
+                        "SENT"
+                    )
+                else:
+                    update_invoice_status(
+                        row["invoice_no"],
+                        "FAILED"
+                    )
 
             log_email(
                 session_id=session_id,

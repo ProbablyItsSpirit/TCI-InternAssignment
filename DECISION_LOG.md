@@ -157,3 +157,5 @@ actually doing the smtp part now after whole lot of fixing and stuff
 unified database selected 
 Then updated dashboard to display these scheduling columns so users can track email sent history
 
+Google App password added inside environment file and then added 
+added status for emails per client also visible in dashboard, now user can see which invoice failed which got sent and how accurately the email are actually going.

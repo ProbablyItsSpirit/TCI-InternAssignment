@@ -41,7 +41,8 @@ def init_db():
         payment_link TEXT,
         next_followup_date TEXT,
         last_email_sent TEXT,
-        followup_frequency_days INTEGER
+        followup_frequency_days INTEGER,
+        last_status TEXT
     )
     """)
 
@@ -74,6 +75,14 @@ def init_db():
         cursor.execute("""
         ALTER TABLE invoices
         ADD COLUMN follow_up_count INTEGER DEFAULT 0
+        """)
+    except:
+        pass
+
+    try:
+        cursor.execute("""
+        ALTER TABLE invoices
+        ADD COLUMN last_status TEXT
         """)
     except:
         pass
