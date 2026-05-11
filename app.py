@@ -128,7 +128,94 @@ def process_email_action(
 
     return email, email_status, send_now
 
+
+def render_test_email_playground():
+
+    st.subheader("Test Email Playground")
+    st.caption("Create a custom invoice scenario and generate a follow-up email instantly.")
+
+    stage_options = ["Stage 1", "Stage 2", "Stage 3", "Stage 4", "Escalation"]
+
+    with st.form("test_email_form"):
+        col1, col2 = st.columns(2)
+
+        with col1:
+            test_client_name = st.text_input("Client Name", value="Neha Mehta")
+            test_invoice_no = st.text_input("Invoice Number", value="INV-TEST-001")
+            test_amount = st.number_input("Amount Due", min_value=0, value=145000, step=1000)
+            test_stage = st.selectbox("Follow-Up Stage", stage_options, index=3)
+
+        with col2:
+            test_due_date = st.date_input("Due Date")
+            test_days_overdue = st.number_input("Days Overdue", min_value=0, value=12, step=1)
+            test_payment_link = st.text_input(
+                "Payment Link",
+                value="https://pay.company.com/INV-TEST-001"
+            )
+            test_contact_email = st.text_input("Recipient Email", value="")
+
+        generate_test_email = st.form_submit_button("Generate Test Email")
+
+    if generate_test_email:
+        test_row = {
+            "stage": test_stage,
+            "client_name": test_client_name,
+            "invoice_no": test_invoice_no,
+            "amount": int(test_amount),
+            "due_date": test_due_date.strftime("%d-%m-%Y"),
+            "days_overdue": int(test_days_overdue),
+            "payment_link": test_payment_link,
+            "contact_email": test_contact_email,
+        }
+
+        st.session_state["test_email_payload"] = test_row
+        st.session_state["test_email_result"] = generate_followup_email(test_row)
+
+    if "test_email_result" in st.session_state:
+        email_result = st.session_state["test_email_result"]
+        payload = st.session_state.get("test_email_payload", {})
+
+        st.markdown("### Subject")
+        st.write(email_result.get("subject", ""))
+
+        st.markdown("### Email Body")
+        st.write(email_result.get("body", ""))
+
+        st.markdown("### Tone")
+        st.info(email_result.get("tone", "Unknown"))
+
+        send_test_now = st.toggle("Send this test email", value=False)
+        if send_test_now:
+            recipient_email = st.text_input(
+                "Recipient for Test Send",
+                value=payload.get("contact_email", ""),
+                key="test_send_recipient"
+            )
+            if st.button("Send Test Email"):
+                if not recipient_email.strip():
+                    st.error("Please provide a recipient email address.")
+                else:
+                    smtp_success = send_email(
+                        recipient_email.strip(),
+                        email_result.get("subject", "Test Email"),
+                        email_result.get("body", "")
+                    )
+                    if smtp_success:
+                        st.success(f"Test email sent to {recipient_email.strip()}")
+                    else:
+                        st.error(f"Failed to send test email to {recipient_email.strip()}")
+
 init_db()
+page = st.sidebar.radio(
+    "Page",
+    ["Campaign Dashboard", "Test Email Playground"],
+    index=0
+)
+
+if page == "Test Email Playground":
+    render_test_email_playground()
+    st.stop()
+
 df = fetch_invoices()
 df["Select"] = False
 df["days_overdue"] = df["due_date"].apply(calculate_days_overdue)
