@@ -102,3 +102,8 @@ Due Date: 09-05-2026
 </details>
 
 fixed logs saving issue
+adding exporting logs button and some color to the importance of stages
+Making session_ids to keep track of mailing
+
+
+### Phase 

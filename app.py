@@ -19,6 +19,19 @@ st.set_page_config(
 
 st.title("Finance Credit Follow-Up Email Agent")
 
+
+def highlight_stage(stage):
+
+    colors = {
+        "Stage 1": "🟢",
+        "Stage 2": "🟡",
+        "Stage 3": "🟠",
+        "Stage 4": "🔴",
+        "Escalation": "⚫"
+    }
+
+    return colors.get(stage, "")
+
 init_db()
 df = pd.read_csv("invoices.csv")
 
@@ -98,7 +111,8 @@ if st.button("Run Follow-Up Agent"):
             generated_count += 1
 
             with st.expander(
-                f"{row['client_name']} • {row['invoice_no']} • {row['stage']}"
+                f"{row['client_name']} • {row['invoice_no']} • "
+                f"{highlight_stage(row['stage'])} {row['stage']}"
             ):
 
                 st.warning("Payment Pending")
@@ -165,6 +179,15 @@ if logs:
 
     logs_df = build_logs_df(logs)
 
+    csv = logs_df.to_csv(index=False).encode('utf-8')
+
+    st.download_button(
+        "Download Audit Logs CSV",
+        csv,
+        "audit_logs.csv",
+        "text/csv"
+    )
+
     # Clean View Table
 
     st.dataframe(
@@ -187,7 +210,8 @@ if logs:
     for _, row in logs_df.iterrows():
 
         with st.expander(
-            f"{row['Client']} • {row['Invoice']} • {row['Stage']}"
+            f"{row['Client']} • {row['Invoice']} • "
+            f"{highlight_stage(row['Stage'])} {row['Stage']}"
         ):
 
             st.markdown("### Subject")
