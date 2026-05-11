@@ -47,6 +47,11 @@ STRICT RULES:
 - Add a professional greeting and closing
 - Personalize the message
 - Escalate tone appropriately based on stage
+- Format the email professionally with proper spacing
+- Greeting must be on a separate line
+- Body paragraphs must be separated with blank lines
+- Closing signature must be on separate lines
+- Use newline characters naturally in the body
 - Return ONLY valid raw JSON
 - Do NOT wrap output in markdown
 - Never use placeholders like [Your Name].

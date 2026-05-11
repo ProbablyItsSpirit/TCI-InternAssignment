@@ -23,6 +23,8 @@ def send_email(
     body
 ):
 
+    formatted_body = body.replace(". ", ".\n\n")
+
     try:
 
         msg = MIMEMultipart()
@@ -34,7 +36,7 @@ def send_email(
         msg["Subject"] = subject
 
         msg.attach(
-            MIMEText(body, "plain")
+            MIMEText(formatted_body, "plain")
         )
 
         server = smtplib.SMTP(

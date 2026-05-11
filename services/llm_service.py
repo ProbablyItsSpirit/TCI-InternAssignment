@@ -1,5 +1,6 @@
 import os
 import json
+import re
 
 from dotenv import load_dotenv
 from openai import OpenAI
@@ -35,6 +36,23 @@ def generate_response(prompt):
         return json.loads(content)
 
     except Exception:
+        cleaned_content = content.strip()
+
+        if cleaned_content.startswith("```"):
+            cleaned_content = re.sub(r"^```(?:json)?\s*", "", cleaned_content, flags=re.IGNORECASE)
+            cleaned_content = re.sub(r"\s*```$", "", cleaned_content)
+
+        first_brace = cleaned_content.find("{")
+        last_brace = cleaned_content.rfind("}")
+
+        if first_brace != -1 and last_brace != -1 and last_brace > first_brace:
+            possible_json = cleaned_content[first_brace:last_brace + 1]
+
+            try:
+                return json.loads(possible_json)
+            except Exception:
+                pass
+
         return {
             "subject": "Parsing Error",
             "body": content,

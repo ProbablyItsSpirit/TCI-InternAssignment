@@ -65,6 +65,69 @@ def highlight_stage(stage):
 
     return colors.get(stage, "")
 
+
+def process_email_action(
+    row,
+    *,
+    approval_mode,
+    dry_run,
+    mail_frequency,
+    session_id,
+    widget_key_prefix
+):
+
+    email = generate_followup_email(row)
+
+    if approval_mode:
+        send_now = st.checkbox(
+            f"Approve sending to {row['client_name']}",
+            key=f"{widget_key_prefix}_{row['invoice_no']}"
+        )
+    else:
+        send_now = True
+
+    email_status = "PENDING"
+
+    if send_now and not dry_run:
+        smtp_success = send_email(
+            row["contact_email"],
+            email["subject"],
+            email["body"]
+        )
+
+        if smtp_success:
+            email_status = "EMAIL_SENT"
+            update_invoice_status(row["invoice_no"], "SENT")
+        else:
+            email_status = "EMAIL_FAILED"
+            update_invoice_status(row["invoice_no"], "FAILED")
+
+        next_followup_date = (
+            datetime.today() + timedelta(days=mail_frequency)
+        ).strftime("%Y-%m-%d")
+
+        update_last_email_sent(row["invoice_no"])
+        update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
+        increment_followup_count(row["invoice_no"])
+
+    elif send_now and dry_run:
+        email_status = "DRY_RUN_SUCCESS"
+
+    else:
+        update_invoice_status(row["invoice_no"], "PENDING")
+
+    log_email(
+        session_id=session_id,
+        client_name=row["client_name"],
+        invoice_no=row["invoice_no"],
+        stage=row["stage"],
+        subject=email["subject"],
+        body=email["body"],
+        status=email_status
+    )
+
+    return email, email_status, send_now
+
 init_db()
 df = fetch_invoices()
 df["Select"] = False
@@ -79,6 +142,10 @@ mail_frequency = st.sidebar.selectbox(
     "Send Follow-Up Every",
     [1, 2, 3, 5, 7, 14, 30],
     index=4
+)
+approval_mode = st.sidebar.toggle(
+    "Human Approval Mode",
+    value=True
 )
 
 st.sidebar.caption(
@@ -305,6 +372,11 @@ run_agent = st.sidebar.button(
     use_container_width=True
 )
 
+retry_failed_emails = st.sidebar.button(
+    "Retry Failed Emails",
+    use_container_width=True
+)
+
 if run_agent:
 
     generated_count = 0
@@ -319,52 +391,15 @@ if run_agent:
             # Scheduling Logic
             if not should_send_followup(row.get("next_followup_date")):
                 continue
-            
-            email = generate_followup_email(row)
-            email_status = "DRY_RUN_SUCCESS"
 
-            if not dry_run:
-                smtp_success = send_email(
-                    row["contact_email"],
-                    email["subject"],
-                    email["body"]
-                )
-
-                if smtp_success:
-                    email_status = "EMAIL_SENT"
-                else:
-                    email_status = "EMAIL_FAILED"
-
-                if smtp_success:
-                    update_invoice_status(
-                        row["invoice_no"],
-                        "SENT"
-                    )
-                else:
-                    update_invoice_status(
-                        row["invoice_no"],
-                        "FAILED"
-                    )
-
-            log_email(
+            email, email_status, send_now = process_email_action(
+                row,
+                approval_mode=approval_mode,
+                dry_run=dry_run,
+                mail_frequency=mail_frequency,
                 session_id=session_id,
-                client_name=row["client_name"],
-                invoice_no=row["invoice_no"],
-                stage=row["stage"],
-                subject=email["subject"],
-                body=email["body"],
-                status=email_status
+                widget_key_prefix="send"
             )
-
-            # Calculate next follow-up date for scheduling (will be persisted below)
-            next_followup_date = (
-                datetime.today() + timedelta(days=mail_frequency)
-            ).strftime("%Y-%m-%d")
-
-            # Persist scheduling changes to invoices DB
-            update_last_email_sent(row["invoice_no"])
-            update_next_followup(row["invoice_no"], next_followup_date, mail_frequency)
-            increment_followup_count(row["invoice_no"])
 
             if email_status == "EMAIL_SENT":
                 st.success(
@@ -374,6 +409,11 @@ if run_agent:
             elif email_status == "EMAIL_FAILED":
                 st.error(
                     f"Failed sending to {row['contact_email']}"
+                )
+
+            elif email_status == "PENDING" and approval_mode:
+                st.warning(
+                    f"Awaiting approval for {row['contact_email']}"
                 )
 
             generated_count += 1
@@ -407,6 +447,47 @@ if run_agent:
         f"Dry Run Successful • {generated_count} follow-up emails generated"
     )
 
+if retry_failed_emails:
+
+    failed_rows = df[
+        df["last_status"].fillna("PENDING") == "FAILED"
+    ]
+
+    if failed_rows.empty:
+        st.info("No failed emails found to retry.")
+    else:
+
+        retry_count = 0
+
+        for _, row in failed_rows.iterrows():
+
+            if row["stage"] != "Escalation" and row["days_overdue"] > 0:
+                email, email_status, send_now = process_email_action(
+                    row,
+                    approval_mode=approval_mode,
+                    dry_run=dry_run,
+                    mail_frequency=mail_frequency,
+                    session_id=session_id,
+                    widget_key_prefix="retry"
+                )
+
+                if email_status == "EMAIL_SENT":
+                    st.success(
+                        f"Retried email sent to {row['contact_email']}"
+                    )
+                elif email_status == "EMAIL_FAILED":
+                    st.error(
+                        f"Retry failed for {row['contact_email']}"
+                    )
+                elif email_status == "PENDING" and approval_mode:
+                    st.warning(
+                        f"Retry awaiting approval for {row['contact_email']}"
+                    )
+
+                retry_count += 1
+
+        st.success(f"Retry process completed for {retry_count} failed email(s).")
+
 # Escalated Cases
 
 st.subheader("Escalated Cases")
@@ -417,6 +498,17 @@ if not escalated_df.empty:
     st.error("Human Legal Review Required")
 
 st.dataframe(escalated_df)
+
+st.subheader("Delivery Analytics")
+
+status_series = df["last_status"].fillna("PENDING")
+
+delivery_col1, delivery_col2, delivery_col3, delivery_col4 = st.columns(4)
+
+delivery_col1.metric("Sent", int((status_series == "SENT").sum()))
+delivery_col2.metric("Failed", int((status_series == "FAILED").sum()))
+delivery_col3.metric("Pending", int((status_series == "PENDING").sum()))
+delivery_col4.metric("Escalated", int((df["stage"] == "Escalation").sum()))
 
 
 def build_logs_df(logs):

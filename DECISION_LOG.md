@@ -158,4 +158,17 @@ unified database selected
 Then updated dashboard to display these scheduling columns so users can track email sent history
 
 Google App password added inside environment file and then added 
-added status for emails per client also visible in dashboard, now user can see which invoice failed which got sent and how accurately the email are actually going.
+Added status for emails per client also visible in dashboard. Now user can see which invoice failed which got sent 
+and how accurately the email are actually going.
+
+After testing the system the agent system works perfectly well
+only prompt problem found this time was the greetings and signatures were coming up in one single line
+
+### Phase 5
+Implementing email approval workflow
+added approval mode and also if email fails retry failed email button
+
+added email delivery analytics as well 
+Human Approval mode works flawlessly
+
+generated mails had parsing error (fixed)
